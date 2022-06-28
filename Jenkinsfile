@@ -4,7 +4,7 @@ pipeline {
         skipStagesAfterUnstable()
     }
     stages {
-         stage('Clone repository') { 
+         stage('Clone repository Raponi') { 
             steps { 
                 script{
                 checkout scm
