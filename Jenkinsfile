@@ -19,9 +19,10 @@ pipeline {
                 }
             }
         }
-        stage('Test'){
+        stage('SAST'){
             steps {
-                 echo 'Empty'
+                 sh 'docker pull registry.fortidevsec.forticloud.com/fdevsec_sast:latest'
+                 sh 'docker run --rm --mount type=bind,source="$PWD",target=/scan registry.fortidevsec.forticloud.com/fdevsec_sast:latest'
             }
         }
         stage('Push') {
