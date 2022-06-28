@@ -21,10 +21,10 @@ pipeline {
         }
         stage('Test'){
             steps {
-                 echo 'Nada aqui'
+                 echo 'Empty'
             }
         }
-        stage('Deploy') {
+        stage('Push') {
             steps {
                 script{
                         docker.withRegistry('https://371571523880.dkr.ecr.us-east-1.amazonaws.com/juice-shop', 'ecr:us-east-1:aws-credentials') {
@@ -34,5 +34,10 @@ pipeline {
                 }
             }
         }
+        stage('Deploy'){
+            steps {
+                 sh 'kubectl apply -f deployment.yml'
+            }
+        }        
     }
 }
