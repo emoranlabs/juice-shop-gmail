@@ -1,0 +1,29 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: juice-shop
+spec:
+  template:
+    metadata:
+      labels:
+        app: juice-shop
+    spec:
+      containers:
+      - name: juice-shop
+        image: 371571523880.dkr.ecr.us-east-1.amazonaws.com/juice-shop:latest
+  selector:
+    matchLabels:
+      app: juice-shop
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: juice-shop
+spec:
+  type: LoadBalancer
+  selector:
+    app: juice-shop
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 3000
