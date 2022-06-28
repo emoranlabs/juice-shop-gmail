@@ -19,11 +19,11 @@ pipeline {
                 }
             }
         }
- /*       stage('Image CWP Scan'){
+        stage('Image CWP Scan'){
             steps {
                  fortiCWPScanner imageName: 'juice-shop:latest', block: false
             }
-        }*/
+        }
         stage('SAST'){
             steps {
                  sh 'docker pull registry.fortidevsec.forticloud.com/fdevsec_sast:latest'
