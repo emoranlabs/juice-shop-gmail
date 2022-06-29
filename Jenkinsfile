@@ -21,7 +21,7 @@ pipeline {
         }
         stage('Image CWP Scan'){
             steps {
-                 fortiCWPScanner imageName: 'juice-shop:latest', block: false
+                 fortiCWPScanner imageName: 'juice-shop:latest', block: true
             }
         }
         stage('SAST'){
