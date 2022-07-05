@@ -5,7 +5,7 @@
 import dataErasure from './routes/dataErasure'
 import fs = require('fs')
 import { Request, Response, NextFunction } from 'express'
-import { sequelize } from './models/index'
+import { sequelize } from './models'
 import { UserModel } from './models/user'
 import { QuantityModel } from './models/quantity'
 import { CardModel } from './models/card'
@@ -40,6 +40,7 @@ const yaml = require('js-yaml')
 const swaggerUi = require('swagger-ui-express')
 const RateLimit = require('express-rate-limit')
 const client = require('prom-client')
+const ipfilter = require('express-ipfilter').IpFilter
 const swaggerDocument = yaml.load(fs.readFileSync('./swagger.yml', 'utf8'))
 const {
   ensureFileIsPassed,
@@ -169,6 +170,12 @@ restoreOverwrittenFilesWithOriginals().then(() => {
     }
   }))
 
+  /* Hiring header */
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.append('X-Recruiting', config.get('application.securityTxt.hiring'))
+    next()
+  })
+
   /* Remove duplicate slashes from URL which allowed bypassing subsequent filters */
   app.use((req: Request, res: Response, next: NextFunction) => {
     req.url = req.url.replace(/[/]+/g, '/')
@@ -187,6 +194,7 @@ restoreOverwrittenFilesWithOriginals().then(() => {
     encryption: config.get('application.securityTxt.encryption'),
     acknowledgements: config.get('application.securityTxt.acknowledgements'),
     'Preferred-Languages': [...new Set(locales.map((locale: { key: string }) => locale.key.substr(0, 2)))].join(', '),
+    hiring: config.get('application.securityTxt.hiring'),
     expires: securityTxtExpiration.toUTCString()
   }))
 
@@ -363,7 +371,7 @@ restoreOverwrittenFilesWithOriginals().then(() => {
   /* Accounting users are allowed to check and update quantities */
   app.delete('/api/Quantitys/:id', security.denyAll())
   app.post('/api/Quantitys', security.denyAll())
-  app.use('/api/Quantitys/:id', security.isAccounting())
+  app.use('/api/Quantitys/:id', security.isAccounting(), ipfilter(['123.456.789'], { mode: 'allow' }))
   /* Feedbacks: Do not allow changes of existing feedback */
   app.put('/api/Feedbacks/:id', security.denyAll())
   /* PrivacyRequests: Only allowed for authenticated users */
@@ -627,6 +635,12 @@ const uploadToDisk = multer({
   })
 })
 
+const expectedModels = ['Address', 'Basket', 'BasketItem', 'Captcha', 'Card', 'Challenge', 'Complaint', 'Delivery', 'Feedback', 'ImageCaptcha', 'Memory', 'PrivacyRequestModel', 'Product', 'Quantity', 'Recycle', 'SecurityAnswer', 'SecurityQuestion', 'User', 'Wallet']
+while (!expectedModels.every(model => Object.keys(sequelize.models).includes(model))) {
+  logger.info(`Entity models ${colors.bold(Object.keys(sequelize.models).length)} of ${colors.bold(expectedModels.length)} are initialized (${colors.yellow('WAITING')})`)
+}
+logger.info(`Entity models ${colors.bold(Object.keys(sequelize.models).length)} of ${colors.bold(expectedModels.length)} are initialized (${colors.green('OK')})`)
+
 // vuln-code-snippet start exposedMetricsChallenge
 /* Serve metrics */
 const Metrics = metrics.observeMetrics() // vuln-code-snippet neutral-line exposedMetricsChallenge
@@ -672,3 +686,7 @@ export function close (exitCode: number | undefined) {
   }
 }
 // vuln-code-snippet end exposedMetricsChallenge
+
+// stop server on sigint or sigterm signals
+process.on('SIGINT', () => close(0))
+process.on('SIGTERM', () => close(0))

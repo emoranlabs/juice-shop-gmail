@@ -17,6 +17,8 @@ on:
       - 'LICENSE'
       - 'data/static/i18n/*.json'
       - 'frontend/src/assets/i18n/*.json'
+env:
+  ANGULAR_CLI_VERSION: 13
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -28,7 +30,7 @@ jobs:
         with:
           node-version: 16
       - name: "Install CLI tools"
-        run: npm install -g @angular/cli
+        run: npm install -g @angular/cli@$ANGULAR_CLI_VERSION
       - name: "Install application minimalistically"
         run: |
           npm install --ignore-scripts
@@ -60,7 +62,7 @@ jobs:
         with:
           node-version: 16
       - name: "Install CLI tools"
-        run: npm install -g @angular/cli
+        run: npm install -g @angular/cli@$ANGULAR_CLI_VERSION
       - name: "Install application"
         run: npm install
       - name: "Check coding challenges for accidental code discrepancies"
@@ -82,7 +84,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: "Install CLI tools"
         if: github.repository == 'juice-shop/juice-shop' || github.repository != 'juice-shop/juice-shop' && matrix.os == 'ubuntu-latest' && matrix.node-version == '16'
-        run: npm install -g @angular/cli
+        run: npm install -g @angular/cli@$ANGULAR_CLI_VERSION
       - name: "Install application"
         if: github.repository == 'juice-shop/juice-shop' || github.repository != 'juice-shop/juice-shop' && matrix.os == 'ubuntu-latest' && matrix.node-version == '16'
         run: npm install
@@ -90,7 +92,7 @@ jobs:
         if: github.repository == 'juice-shop/juice-shop' || github.repository != 'juice-shop/juice-shop' && matrix.os == 'ubuntu-latest' && matrix.node-version == '16'
         uses: nick-invision/retry@45ba062d357edb3b29c4a94b456b188716f61020 #v2: 2.4.1 available
         with:
-          timeout_minutes: 10
+          timeout_minutes: 15
           max_attempts: 3
           command: npm test
       - name: "Copy unit test coverage data"
@@ -122,7 +124,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: "Install CLI tools"
         if: github.repository == 'juice-shop/juice-shop' || github.repository != 'juice-shop/juice-shop' && matrix.os == 'ubuntu-latest' && matrix.node-version == '16'
-        run: npm install -g @angular/cli
+        run: npm install -g @angular/cli@$ANGULAR_CLI_VERSION
       - name: "Install application"
         if: github.repository == 'juice-shop/juice-shop' || github.repository != 'juice-shop/juice-shop' && matrix.os == 'ubuntu-latest' && matrix.node-version == '16'
         run: npm install
@@ -187,7 +189,7 @@ jobs:
         with:
           node-version: 16
       - name: "Install CLI tools"
-        run: npm install -g @angular/cli
+        run: npm install -g @angular/cli@$ANGULAR_CLI_VERSION
       - name: "Install application"
         if: github.repository == 'juice-shop/juice-shop' || github.repository != 'juice-shop/juice-shop' && matrix.os == 'ubuntu-latest' && matrix.node-version == '16'
         run: npm install
@@ -219,7 +221,7 @@ jobs:
         with:
           node-version: 16
       - name: "Install CLI tools"
-        run: npm install -g @angular/cli
+        run: npm install -g @angular/cli@$ANGULAR_CLI_VERSION
       - name: "Install application"
         if: github.repository == 'juice-shop/juice-shop' || github.repository != 'juice-shop/juice-shop' && matrix.os == 'ubuntu-latest' && matrix.node-version == '16'
         run: npm install
@@ -235,9 +237,13 @@ jobs:
             set SOLUTIONS_WEBHOOK="$env:SOLUTIONS_WEBHOOK"
             npm run preprotractor:github
             npm run e2e
-  e2e-in-subfolder:
-    runs-on: windows-latest
-    if: github.repository == 'juice-shop/juice-shop'
+  e2e-with-cypress:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        browser: [chrome, firefox]
+      fail-fast: false
     steps:
       - name: "Check out Git repository"
         uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f #v2: v2.3.4 available
@@ -248,13 +254,56 @@ jobs:
       - name: "Install CLI tools"
         run: npm install -g @angular/cli
       - name: "Install application"
+        run: npm install
+      - name: "Execute end-to-end tests on Ubuntu"
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        uses: cypress-io/github-action@c662a784116e1a26360c4e1fc0a90feedb4b5ed3 #v3.1.0
+        with:
+          install: false
+          browser: ${{ matrix.browser }}
+          start: npm start
+          wait-on: http://localhost:3000
+      - name: "Execute end-to-end tests on Mac"
+        if: ${{ matrix.os == 'macos-latest' }}
+        uses: cypress-io/github-action@c662a784116e1a26360c4e1fc0a90feedb4b5ed3 #v3.1.0
+        with:
+          install: false
+          browser: ${{ matrix.browser }}
+          start: npm start
+          wait-on: http://localhost:3000
+        env:
+          CYPRESS_CACHE_FOLDER: /Users/runner/Library/Caches/Cypress
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+      - uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: cypress-videos
+          path: cypress/videos
+  e2e-in-subfolder:
+    runs-on: windows-latest
+    if: github.repository == 'juice-shop/juice-shop'
+    continue-on-error: true
+    steps:
+      - name: "Check out Git repository"
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f #v2: v2.3.4 available
+      - name: "Use Node.js 16"
+        uses: actions/setup-node@f1f314fca9dfce2769ece7d933488f076716723e #v1: v2.x available
+        with:
+          node-version: 16
+      - name: "Install CLI tools"
+        run: npm install -g @angular/cli@$ANGULAR_CLI_VERSION
+      - name: "Install application"
         if: github.repository == 'juice-shop/juice-shop' || github.repository != 'juice-shop/juice-shop' && matrix.os == 'ubuntu-latest' && matrix.node-version == '16'
         run: npm install
       - name: "Execute end-to-end tests with application hosted in subfolder"
         uses: nick-invision/retry@45ba062d357edb3b29c4a94b456b188716f61020 #v2: 2.4.1 available
         with:
           timeout_minutes: 20
-          max_attempts: 2
+          max_attempts: 1
           command: |
             set NODE_ENV=test
             npm run preprotractor:github
@@ -270,7 +319,7 @@ jobs:
           node-version: 16
       - name: "Install CLI tools"
         run: |
-          npm install -g @angular/cli
+          npm install -g @angular/cli@$ANGULAR_CLI_VERSION
           npm install -g grunt-cli
       - name: "Set packaging options for Grunt"
         run: |
@@ -302,7 +351,7 @@ jobs:
         run: docker-compose -f docker-compose.test.yml up --exit-code-from sut
   docker:
     if: github.repository == 'juice-shop/juice-shop' && github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master')
-    needs: [test, api-test, e2e, e2e-in-subfolder, custom-config-test, docker-test]
+    needs: [test, api-test, e2e, e2e-with-cypress, e2e-in-subfolder, custom-config-test, docker-test]
     runs-on: ubuntu-latest
     steps:
       - name: "Check out Git repository"
@@ -330,7 +379,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             bkimminich/juice-shop:${{ env.DOCKER_TAG }}
@@ -351,7 +400,7 @@ jobs:
             BUILD_DATE=${{ env.BUILD_DATE }}
   heroku:
     if: github.repository == 'juice-shop/juice-shop' && github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master')
-    needs: [test, api-test, e2e, e2e-in-subfolder, custom-config-test]
+    needs: [test, api-test, e2e, e2e-with-cypress, e2e-in-subfolder, custom-config-test]
     runs-on: ubuntu-latest
     steps:
       - name: "Check out Git repository"
