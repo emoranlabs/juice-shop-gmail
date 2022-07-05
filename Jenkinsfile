@@ -15,7 +15,7 @@ pipeline {
         stage('Build') { 
             steps { 
                 script{
-                 app = docker.build("juice-shop", "--no-cache")
+                 app = docker.build("juice-shop")
                 }
             }
         }
