@@ -19,7 +19,7 @@ pipeline {
                 }
             }
         }
-        stage('CWP Scan'){
+        stage('CNP Scan'){
             steps {
                  fortiCWPScanner imageName: 'juice-shop:latest', block: true
             }
