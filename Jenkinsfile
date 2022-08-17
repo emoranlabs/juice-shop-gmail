@@ -18,12 +18,12 @@ pipeline {
                  app = docker.build("juice-shop")
                 }
             }
-        }
+        }/*
         stage('CNP Scan'){
             steps {
                  fortiCWPScanner imageName: 'juice-shop:latest', block: true
             }
-        }
+        }*/
         stage('SAST'){
             steps {
                  sh 'docker pull registry.fortidevsec.forticloud.com/fdevsec_sast:latest'
