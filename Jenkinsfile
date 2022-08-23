@@ -32,11 +32,11 @@ pipeline {
         }
         stage('Push') {
             steps {
-                script{/*
-                        docker.withRegistry('https://371571523880.dkr.ecr.us-east-1.amazonaws.com/juice-shop', 'ecr:us-east-1:aws-credentials') {
+                script{
+                        docker.withRegistry('363412468025.dkr.ecr.us-east-2.amazonaws.com/juice-shop', 'ecr:us-east-1:aws-credentials') {
                     app.push("${env.BUILD_NUMBER}")
                     app.push("latest")
-                    */}
+                    }
                 }
             }
         }
