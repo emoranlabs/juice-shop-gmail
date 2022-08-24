@@ -33,7 +33,7 @@ pipeline {
         stage('Push') {
             steps {
                 script{
-                        docker.withRegistry('363412468025.dkr.ecr.us-east-2.amazonaws.com/juice-shop', 'ecr:us-east-2:emoran-US_EAST_2') {
+                        docker.withRegistry('363412468025.dkr.ecr.us-east-2.amazonaws.com/juice-shop', 'ecr:us-east-2:emoran') {
                     app.push("${env.BUILD_NUMBER}")
                     app.push("latest")
                     }
