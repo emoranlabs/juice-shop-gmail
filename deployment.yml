@@ -10,7 +10,7 @@ spec:
     spec:
       containers:
       - name: juice-shop
-        image: 363412468025.dkr.ecr.us-east-2.amazonaws.com/juice-shop:latest
+        image: 363412468025.dkr.ecr.us-east-2.amazonaws.com/juice-shop-2:latest
   selector:
     matchLabels:
       app: juice-shop
