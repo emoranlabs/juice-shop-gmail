@@ -39,7 +39,7 @@ pipeline {
                     }
                 }
             }
-        }
+        }/*
         stage('Deploy'){
             steps {
                  sh 'kubectl apply -f deployment.yml'
@@ -50,7 +50,7 @@ pipeline {
                  sh 'sleep 1m'
                  sh 'docker pull registry.fortidevsec.forticloud.com/fdevsec_dast:latest'
                  sh 'docker run --rm --mount type=bind,source="$PWD",target=/scan registry.fortidevsec.forticloud.com/fdevsec_dast:latest'                 
-            }
+            }*/
         }
     }
 }
