@@ -40,12 +40,12 @@ pipeline {
                     }
                 }
             }
-        }/*
+        }
         stage('Deploy'){
             steps {
                  sh 'kubectl apply -f deployment.yml'
             }
-        } 
+        }/*
         stage('DAST'){
             steps {
                  sh 'sleep 1m'
