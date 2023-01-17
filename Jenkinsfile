@@ -15,7 +15,7 @@ pipeline {
         stage('Build') { 
             steps { 
                 script{
-                 app = docker.build("juice-shop")
+                 app = docker.build("juice-shop-gmail")
                 }
             }
         }/*
@@ -39,7 +39,7 @@ pipeline {
                     }
                 }
             }
-        }
+        }/*
         stage('Deploy'){
             steps {
                  sh 'kubectl apply -f deployment.yml'
@@ -51,6 +51,6 @@ pipeline {
                  sh 'docker pull registry.fortidevsec.forticloud.com/fdevsec_dast:latest'
                  sh 'docker run --rm --mount type=bind,source="$PWD",target=/scan registry.fortidevsec.forticloud.com/fdevsec_dast:latest'                 
             }
-        }
+        }*/
     }
 }
